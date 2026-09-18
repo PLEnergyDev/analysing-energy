@@ -1,0 +1,48 @@
+grammar org.xtext.MCC with org.eclipse.xtext.common.Terminals
+
+generate mCC "http://www.xtext.org/MCC"
+
+Model:
+	 (devices+=Device | applications+=Application | systems += System)*
+;
+
+Device:
+	Cloud | DummyDevice
+;
+
+Cloud:
+	'Cloud' name=ID '[' cpuInstructions=INT ','  energyPerInstruction=INT ',' energyPerMemoryUnit=INT ',' energyPerDataUnit=INT ',' applications+=[Application]	']' ';'
+;
+
+DummyDevice:
+'DummyDevice' name=ID '[' applications+=[Application] ']'
+		';'  // Never used, just maintains structure
+;
+		
+Application:
+	'Application' name=ID '{' fragments+=Fragment+   structure=Structure '}'';'
+;
+
+Structure:
+	'Structure' name=ID '[' 
+		edges+=Edge+
+	']'';'
+;
+
+Edge:
+	start=[Fragment] operator=Operator stop+=[Fragment](',' stop+=[Fragment])*  ';'
+//	start=[Fragment] operator=Operator stop=Expression  ';'
+;
+
+
+enum Operator:
+	NDC = '-->' | PAR = '--|' | SEQ ='--::'
+;
+
+Fragment:
+	'Fragment' name=ID '[' instructions=INT ','	memory=INT ',' communicationData=INT']' (init='init')? ';'
+;
+
+System:
+	'System' name=ID ':=' devices+=[Device] ('|' devices+=[Device])* ';'
+;

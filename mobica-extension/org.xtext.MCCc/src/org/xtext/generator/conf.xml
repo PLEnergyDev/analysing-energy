@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Cloud Executor Template -->
+<template>
+	<name>CloudExecutor</name>
+	<declaration>
+	void executeFragment(int fragmentId) {
+		// Calculate energy consumption based on fragment characteristics
+		int computationEnergy = Info[fragmentId].instructions * cloudEnergyPerInstruction;
+		int memoryEnergy = Info[fragmentId].memory * cloudEnergyPerMemoryUnit;
+		int communicationEnergy = Info[fragmentId].communicationData * cloudEnergyPerDataUnit;
+		
+		// Update total energy consumption
+		totalEnergyConsumed += computationEnergy + memoryEnergy + communicationEnergy;
+		
+		// Update execution time
+		executionTime += ((Info[fragmentId].instructions * 10) / cloudInstructions);
+		if(executionTime == 0) executionTime = 1; // Minimum execution time
+		
+		// Mark fragment as completed
+		fragmentsCompleted[fragmentId] = true;
+	}
+	</declaration>
+	
+	<location id="idle" x="0" y="0">
+		<name>idle</name>
+	</location>
+	<location id="executing" x="200" y="0">
+		<name>executing</name>
+		<committed/>
+	</location>
+	<location id="completed" x="400" y="0">
+		<name>completed</name>
+	</location>
+	
+	<init ref="idle"/>
+	
+	<transition>
+		<source ref="idle"/>
+		<target ref="executing"/>
+		<label kind="select">f : id_t</label>
+		<label kind="synchronisation">execute[f]?</label>
+		<label kind="assignment">currentFragment = f</label>
+	</transition>
+	<transition>
+		<source ref="executing"/>
+		<target ref="completed"/>
+		<label kind="assignment">executeFragment(currentFragment)</label>
+	</transition>
+	<transition>
+		<source ref="completed"/>
+		<target ref="idle"/>
+		<label kind="synchronisation">completed[currentFragment]!</label>
+	</transition>
+</template>
+
+<!-- Energy Monitor Template -->
+<template>
+	<name>EnergyMonitor</name>
+	<declaration>
+		// Energy monitoring functions
+		bool allFragmentsCompleted() {
+			int i;
+			for(i = 0; i &lt; N; i++) {
+				if(!fragmentsCompleted[i]) return false;
+			}
+			return true;
+		}
+		
+		int calculateTotalEnergy() {
+			return totalEnergyConsumed;
+		}
+		
+		int calculateAverageEnergyPerFragment() {
+			if(N &gt; 0) return totalEnergyConsumed / N;
+			return 0;
+		}
+	</declaration>
+	
+	<location id="monitoring" x="0" y="0">
+		<name>monitoring</name>
+	</location>
+	<location id="finished" x="200" y="0">
+		<name>finished</name>
+	</location>
+	
+	<init ref="monitoring"/>
+	
+	<transition>
+		<source ref="monitoring"/>
+		<target ref="finished"/>
+		<label kind="guard">allFragmentsCompleted()</label>
+		<label kind="assignment">finalEnergyConsumption = calculateTotalEnergy()</label>
+	</transition>
+</template>
+
+<!-- Fragment Template (for each fragment) -->
+<template>
+	<name>Fragment</name>
+	<parameter>const id_t fragmentId</parameter>
+	<declaration>
+		// Fragment-specific variables
+		bool isExecuting = false;
+	</declaration>
+	
+	<location id="waiting" x="0" y="0">
+		<name>waiting</name>
+	</location>
+	<location id="executing" x="200" y="0">
+		<name>executing</name>
+	</location>
+	<location id="done" x="400" y="0">
+		<name>done</name>
+	</location>
+	
+	<init ref="waiting"/>
+	
+	<transition>
+		<source ref="waiting"/>
+		<target ref="executing"/>
+		<label kind="synchronisation">execute[fragmentId]?</label>
+		<label kind="assignment">isExecuting = true</label>
+	</transition>
+	<transition>
+		<source ref="executing"/>
+		<target ref="done"/>
+		<label kind="synchronisation">completed[fragmentId]!</label>
+		<label kind="assignment">isExecuting = false</label>
+	</transition>
+</template>
+
+<!-- Parallel Execution Coordinator -->
+<template>
+	<name>ParallelCoordinator</name>
+	<declaration>
+		int parallelCount = 0;
+		int totalParallel = 0;
+	</declaration>
+	
+	<location id="idle" x="0" y="0">
+		<name>idle</name>
+	</location>
+	<location id="coordinating" x="200" y="0">
+		<name>coordinating</name>
+	</location>
+	
+	<init ref="idle"/>
+	
+	<transition>
+		<source ref="idle"/>
+		<target ref="coordinating"/>
+		<label kind="synchronisation">parallel[fragmentId]?</label>
+		<label kind="assignment">parallelCount++, totalParallel++</label>
+	</transition>
+	<transition>
+		<source ref="coordinating"/>
+		<target ref="idle"/>
+		<label kind="guard">parallelCount &gt; 0</label>
+		<label kind="assignment">parallelCount--</label>
+	</transition>
+</template>
