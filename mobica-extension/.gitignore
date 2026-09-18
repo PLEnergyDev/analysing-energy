@@ -1,0 +1,14 @@
+.metadata
+
+# Java compiled classes
+*.class
+
+# Package files
+*.jar
+*.war
+*.ear
+
+# Build directories
+bin/
+target/
+build/
