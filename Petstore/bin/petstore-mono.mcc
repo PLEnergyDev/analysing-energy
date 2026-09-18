@@ -1,0 +1,108 @@
+/**
+ * Petstore Microservices Architecture
+ * 
+ * Application split into independent microservices
+ * Each service deployed on separate cloud device
+ * 
+ * Comparison point: Energy consumption in microservices setup
+ * 
+ * Services:
+ * - Frontend: UI and API Gateway
+ * - AuthService: Authentication and user management
+ * - CatalogService: Product catalog and database
+ * - AccountService: Customer accounts
+ * - CartService: Shopping cart
+ * - OrderService: Order processing and payment
+ */
+ 
+ 
+ // ============= Order Service =============
+Application OrderService {
+    Fragment ORDER_MESSAGE[40, 10, 5] init;
+    Fragment QUEUE[50, 15, 8];
+    
+    Fragment UPI[10, 1, 0];
+    Fragment UPIL[7, 3, 0];
+    Fragment UPIS[5, 3, 0]; 
+    Fragment UPLOAD[5, 3, 0]; 
+    Fragment PROCESS[70, 25, 8];
+    
+    Structure OrderFlow [
+        ORDER_MESSAGE --| QUEUE;
+        
+        ORDER_MESSAGE --:: UPI;
+        UPI --> UPIL, UPIS;
+        UPIL --| PROCESS, UPLOAD;
+        UPIS --| UPLOAD, PROCESS;
+    ];
+}; 
+ 
+ // ============= Shopping Cart Service =============
+Application CartService {
+    Fragment SHOPPING_CART[35, 8, 3] init;
+    Fragment CART_VALIDATOR[15, 5, 2];
+    
+    Structure CartFlow [
+        SHOPPING_CART --| CART_VALIDATOR;
+    ];
+};
+ 
+ // ============= Account Service =============
+Application AccountService {
+    Fragment CUSTOMER[20, 5, 3] init;
+    Fragment ACCOUNT_DATABASE[80, 30, 5];
+    
+    Structure AccountFlow [
+        CUSTOMER --| ACCOUNT_DATABASE;
+    ];
+};
+ 
+ // ============= Catalog Service =============
+Application CatalogService {
+    Fragment PRODUCT_CATALOG[50, 20, 10] init;
+    Fragment CATALOG_DATABASE[90, 30, 5];
+    
+    Structure CatalogFlow [
+        PRODUCT_CATALOG --| CATALOG_DATABASE;
+    ];
+};
+
+
+ // ============= Authentication Service =============
+Application AuthService {
+    Fragment SIGN_ON[10, 5, 1] init;
+    Fragment USER_DATABASE[60, 20, 5];
+    
+    Structure AuthFlow [
+        SIGN_ON --| USER_DATABASE;
+    ];
+};
+
+
+
+// ============= Frontend Service =============
+Application Frontend {
+    Fragment USER_INTERFACE[15, 2, 1] init;
+    Fragment API_GATEWAY[30, 10, 5];
+    Fragment RENDER[60, 20, 8];
+    Fragment RENL[7, 3, 0];
+    Fragment RENS[5, 3, 1];
+    
+    Structure FrontendFlow [
+        USER_INTERFACE --| API_GATEWAY;
+        API_GATEWAY --| RENDER;
+        RENDER --> RENL, RENS;
+    ];
+};
+
+// ============= Deployment =============
+
+
+Cloud AuthServer[300, 5, 1, 1, AuthService];
+Cloud FrontendServer[500, 5, 1, 1, Frontend];
+Cloud CatalogServer[400, 5, 1, 1, CatalogService];
+Cloud AccountServer[350, 5, 1, 1, AccountService];
+Cloud CartServer[250, 5, 1, 1, CartService];
+Cloud OrderServer[600, 5, 1, 1, OrderService];
+
+System PetstoreMicro :=  OrderServer  |  FrontendServer | AuthServer  | CatalogServer | AccountServer | CartServer ;

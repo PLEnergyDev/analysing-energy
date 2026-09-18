@@ -1,0 +1,431 @@
+<?xml version="1.0" encoding="utf-8"?><!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd'>
+		<nta>
+		<declaration>// Cloud-only energy consumption model
+		const int N=7;
+		typedef int[0, N-1] id_t;
+		
+		// Cloud computing parameters
+		const int cloudInstructions=600;
+		
+		// Energy consumption parameters (units: millijoules)
+		const int cloudEnergyPerInstruction = 5;    // mJ per instruction
+		const int cloudEnergyPerMemoryUnit = 1;     // mJ per memory unit
+		const int cloudEnergyPerDataUnit = 1;       // mJ per communication data unit
+		
+		// Communication channels
+		chan execute[N], completed[N], parallel[N];
+		
+		// Energy tracking variables
+		int totalEnergyConsumed = 0;
+		int finalEnergyConsumption = 0;
+		int executionTime = 0;
+		
+		// Fragment tracking
+		int currentFragment;
+		bool fragmentsCompleted[N];
+		int fragmentsExecuted = 0;
+		
+		// Fragment information structure
+		typedef struct {
+			int instructions;           // Number of instructions to execute
+			int memory;                // Memory requirements
+			int communicationData;     // Data transfer requirements
+		} FragmentInfo;
+		
+		const FragmentInfo Info[N] = {
+			{40, 10, 5}
+			,
+			{50, 15, 8}
+			,
+			{10, 1, 0}
+			,
+			{7, 3, 0}
+			,
+			{5, 3, 0}
+			,
+			{5, 3, 0}
+			,
+			{70, 25, 8}
+		};
+		
+		
+		
+		// Helper functions
+		void prepareExecution(int fragmentId) {
+			// Initialize fragment for execution
+			fragmentsCompleted[fragmentId] = false;
+		}
+		</declaration>
+		<template>
+		<name x="5" y="5"> ORDER_MESSAGE </name>
+		<declaration></declaration>
+		
+		<location id="id1">
+			<name>id1</name>
+		</location>
+		<location id="id2">
+			<name>id2</name>
+		</location>
+		<location id="id3">
+			<name>id3</name>
+		</location>
+		<location id="id4">
+			<name>id4</name>
+			<committed/>
+		</location>
+		<location id="id5">
+			<name>id5</name>
+		</location>
+		
+		<init ref="id5"/>
+		
+		<transition>
+			<source ref="id1"/>
+			<target ref="id2"/>
+				<label kind="synchronisation" >parallel[1]!</label>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id2"/>
+				<label kind="synchronisation" >execute[2]!</label>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id1"/>
+				<label kind="synchronisation" >completed[0]!</label>
+				<label kind="assignment" >prepareExecution(0)</label>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id4"/>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id5"/>
+		</transition>
+		</template>
+		<template>
+		<name x="5" y="5"> QUEUE </name>
+		<declaration></declaration>
+		
+		<location id="id6">
+			<name>id6</name>
+		</location>
+		<location id="id7">
+			<name>id7</name>
+			<committed/>
+		</location>
+		
+		<init ref="id6"/>
+		
+		<transition>
+			<source ref="id7"/>
+			<target ref="id6"/>
+				<label kind="synchronisation" >completed[1]!</label>
+				<label kind="assignment" >prepareExecution(1)</label>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id7"/>
+				<label kind="synchronisation" >execute[1]?</label>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id7"/>
+				<label kind="synchronisation" >parallel[1]?</label>
+		</transition>
+		</template>
+		<template>
+		<name x="5" y="5"> UPI </name>
+		<declaration></declaration>
+		
+		<location id="id8">
+			<name>id8</name>
+		</location>
+		<location id="id9">
+			<name>id9</name>
+		</location>
+		<location id="id10">
+			<name>id10</name>
+		</location>
+		<location id="id11">
+			<name>id11</name>
+			<committed/>
+		</location>
+		
+		<init ref="id10"/>
+		
+		<transition>
+			<source ref="id8"/>
+			<target ref="id9"/>
+				<label kind="synchronisation" >execute[3]!</label>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id9"/>
+				<label kind="synchronisation" >execute[4]!</label>
+		</transition>
+		<transition>
+			<source ref="id11"/>
+			<target ref="id8"/>
+				<label kind="synchronisation" >completed[2]!</label>
+				<label kind="assignment" >prepareExecution(2)</label>
+		</transition>
+		<transition>
+			<source ref="id10"/>
+			<target ref="id11"/>
+				<label kind="synchronisation" >execute[2]?</label>
+		</transition>
+		<transition>
+			<source ref="id9"/>
+			<target ref="id10"/>
+		</transition>
+		</template>
+		<template>
+		<name x="5" y="5"> UPIL </name>
+		<declaration></declaration>
+		
+		<location id="id12">
+			<name>id12</name>
+		</location>
+		<location id="id13">
+			<name>id13</name>
+		</location>
+		<location id="id14">
+			<name>id14</name>
+		</location>
+		<location id="id15">
+			<name>id15</name>
+		</location>
+		<location id="id16">
+			<name>id16</name>
+			<committed/>
+		</location>
+		
+		<init ref="id15"/>
+		
+		<transition>
+			<source ref="id12"/>
+			<target ref="id14"/>
+				<label kind="synchronisation" >parallel[6]!</label>
+		</transition>
+		<transition>
+			<source ref="id14"/>
+			<target ref="id13"/>
+				<label kind="synchronisation" >parallel[5]!</label>
+		</transition>
+		<transition>
+			<source ref="id16"/>
+			<target ref="id12"/>
+				<label kind="synchronisation" >completed[3]!</label>
+				<label kind="assignment" >prepareExecution(3)</label>
+		</transition>
+		<transition>
+			<source ref="id15"/>
+			<target ref="id16"/>
+				<label kind="synchronisation" >execute[3]?</label>
+		</transition>
+		<transition>
+			<source ref="id13"/>
+			<target ref="id15"/>
+		</transition>
+		</template>
+		<template>
+		<name x="5" y="5"> UPIS </name>
+		<declaration></declaration>
+		
+		<location id="id17">
+			<name>id17</name>
+		</location>
+		<location id="id18">
+			<name>id18</name>
+		</location>
+		<location id="id19">
+			<name>id19</name>
+		</location>
+		<location id="id20">
+			<name>id20</name>
+		</location>
+		<location id="id21">
+			<name>id21</name>
+			<committed/>
+		</location>
+		
+		<init ref="id20"/>
+		
+		<transition>
+			<source ref="id17"/>
+			<target ref="id19"/>
+				<label kind="synchronisation" >parallel[5]!</label>
+		</transition>
+		<transition>
+			<source ref="id19"/>
+			<target ref="id18"/>
+				<label kind="synchronisation" >parallel[6]!</label>
+		</transition>
+		<transition>
+			<source ref="id21"/>
+			<target ref="id17"/>
+				<label kind="synchronisation" >completed[4]!</label>
+				<label kind="assignment" >prepareExecution(4)</label>
+		</transition>
+		<transition>
+			<source ref="id20"/>
+			<target ref="id21"/>
+				<label kind="synchronisation" >execute[4]?</label>
+		</transition>
+		<transition>
+			<source ref="id18"/>
+			<target ref="id20"/>
+		</transition>
+		</template>
+		<template>
+		<name x="5" y="5"> UPLOAD </name>
+		<declaration></declaration>
+		
+		<location id="id22">
+			<name>id22</name>
+		</location>
+		<location id="id23">
+			<name>id23</name>
+			<committed/>
+		</location>
+		
+		<init ref="id22"/>
+		
+		<transition>
+			<source ref="id23"/>
+			<target ref="id22"/>
+				<label kind="synchronisation" >completed[5]!</label>
+				<label kind="assignment" >prepareExecution(5)</label>
+		</transition>
+		<transition>
+			<source ref="id22"/>
+			<target ref="id23"/>
+				<label kind="synchronisation" >execute[5]?</label>
+		</transition>
+		<transition>
+			<source ref="id22"/>
+			<target ref="id23"/>
+				<label kind="synchronisation" >parallel[5]?</label>
+		</transition>
+		</template>
+		<template>
+		<name x="5" y="5"> PROCESS </name>
+		<declaration></declaration>
+		
+		<location id="id24">
+			<name>id24</name>
+		</location>
+		<location id="id25">
+			<name>id25</name>
+			<committed/>
+		</location>
+		
+		<init ref="id24"/>
+		
+		<transition>
+			<source ref="id25"/>
+			<target ref="id24"/>
+				<label kind="synchronisation" >completed[6]!</label>
+				<label kind="assignment" >prepareExecution(6)</label>
+		</transition>
+		<transition>
+			<source ref="id24"/>
+			<target ref="id25"/>
+				<label kind="synchronisation" >execute[6]?</label>
+		</transition>
+		<transition>
+			<source ref="id24"/>
+			<target ref="id25"/>
+				<label kind="synchronisation" >parallel[6]?</label>
+		</transition>
+		</template>
+		
+		<template>
+		<name>CloudExecutor</name>
+		<declaration>
+		void executeFragment(int fragmentId) {
+			// Calculate energy consumption based on fragment characteristics
+			int computationEnergy = Info[fragmentId].instructions * cloudEnergyPerInstruction;
+			int memoryEnergy = Info[fragmentId].memory * cloudEnergyPerMemoryUnit;
+			int communicationEnergy = Info[fragmentId].communicationData * cloudEnergyPerDataUnit;
+			
+			// Update total energy consumption
+			totalEnergyConsumed += computationEnergy + memoryEnergy + communicationEnergy;
+			
+			// Update execution time
+			executionTime += ((Info[fragmentId].instructions * 10) / cloudInstructions);
+			if(executionTime == 0) executionTime = 1; // Minimum execution time
+			
+			// Mark fragment as completed
+			fragmentsCompleted[fragmentId] = true;
+		}
+		</declaration>
+		
+		
+		<location id="id26">
+			<name>id26</name>
+		</location>
+		<location id="id27">
+			<name>id27</name>
+			<committed/>
+		</location>
+		
+		<init ref="id26"/>
+		
+		<transition>
+			<source ref="id26"/>
+			<target ref="id27"/>
+				<label kind="select" >f : id_t</label>
+				<label kind="synchronisation" >completed[f]?</label>
+				<label kind="assignment" >currentFragment = f</label>
+		</transition>
+		<transition>
+			<source ref="id27"/>
+			<target ref="id26"/>
+				<label kind="assignment" >executeFragment(currentFragment)</label>
+		</transition>
+		</template>
+		<template>
+		<name>EnergyMonitor</name>
+		<declaration>
+		// Energy monitoring functions
+		bool allFragmentsCompleted() {
+			int i;
+			for(i = 0; i &lt; N; i++) {
+				if(!fragmentsCompleted[i]) return false;
+			}
+			return true;
+		}
+		
+		int calculateTotalEnergy() {
+			return totalEnergyConsumed;
+		}
+		
+		int calculateAverageEnergyPerFragment() {
+			if(N > 0) return totalEnergyConsumed / N;
+			return 0;
+		}
+		</declaration>
+		
+		
+		<location id="id28">
+			<name>id28</name>
+		</location>
+		<location id="id29">
+			<name>id29</name>
+		</location>
+		
+		<init ref="id28"/>
+		
+		<transition>
+			<source ref="id28"/>
+			<target ref="id29"/>
+				<label kind="guard" >allFragmentsCompleted()</label>
+				<label kind="assignment" >finalEnergyConsumption = calculateTotalEnergy()</label>
+		</transition>
+		</template>
+		
+		<system>system ORDER_MESSAGE,QUEUE,UPI,UPIL,UPIS,UPLOAD,PROCESS,CloudExecutor, EnergyMonitor;</system>
+		</nta>

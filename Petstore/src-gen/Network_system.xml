@@ -1,0 +1,957 @@
+<?xml version="1.0" encoding="utf-8"?><!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd'>
+		<nta>
+		<declaration>// Cloud-only energy consumption model
+		const int N=19;
+		typedef int[0, N-1] id_t;
+		
+		// Cloud computing parameters
+		const int cloudInstructions=1000;
+		
+		// Energy consumption parameters (units: millijoules)
+		const int cloudEnergyPerInstruction = 1;    // mJ per instruction
+		const int cloudEnergyPerMemoryUnit = 1;     // mJ per memory unit
+		const int cloudEnergyPerDataUnit = 1;       // mJ per communication data unit
+		
+		// Communication channels
+		chan execute[N], completed[N], parallel[N];
+		
+		// Energy tracking variables
+		int totalEnergyConsumed = 0;
+		int finalEnergyConsumption = 0;
+		int executionTime = 0;
+		
+		// Fragment tracking
+		int currentFragment;
+		bool fragmentsCompleted[N];
+		int fragmentsExecuted = 0;
+		
+		// Fragment information structure
+		typedef struct {
+			int instructions;           // Number of instructions to execute
+			int memory;                // Memory requirements
+			int communicationData;     // Data transfer requirements
+		} FragmentInfo;
+		
+		const FragmentInfo Info[N] = {
+			{15, 2, 1}
+			,
+			{80, 25, 15}
+			,
+			{50, 20, 10}
+			,
+			{90, 30, 5}
+			,
+			{10, 5, 1}
+			,
+			{60, 20, 5}
+			,
+			{20, 5, 3}
+			,
+			{80, 30, 5}
+			,
+			{35, 8, 3}
+			,
+			{40, 10, 5}
+			,
+			{50, 15, 8}
+			,
+			{10, 1, 0}
+			,
+			{7, 3, 0}
+			,
+			{5, 3, 0}
+			,
+			{5, 3, 0}
+			,
+			{70, 25, 8}
+			,
+			{60, 20, 8}
+			,
+			{7, 3, 0}
+			,
+			{5, 3, 0}
+		};
+		
+		
+		
+		// Helper functions
+		void prepareExecution(int fragmentId) {
+			// Initialize fragment for execution
+			fragmentsCompleted[fragmentId] = false;
+		}
+		</declaration>
+		<template>
+		<name x="5" y="5"> USER_INTERFACE </name>
+		<declaration></declaration>
+		
+		<location id="id75">
+			<name>id75</name>
+		</location>
+		<location id="id76">
+			<name>id76</name>
+		</location>
+		<location id="id77">
+			<name>id77</name>
+		</location>
+		<location id="id78">
+			<name>id78</name>
+		</location>
+		<location id="id79">
+			<name>id79</name>
+			<committed/>
+		</location>
+		<location id="id80">
+			<name>id80</name>
+		</location>
+		
+		<init ref="id80"/>
+		
+		<transition>
+			<source ref="id75"/>
+			<target ref="id77"/>
+				<label kind="synchronisation" >parallel[1]!</label>
+		</transition>
+		<transition>
+			<source ref="id77"/>
+			<target ref="id76"/>
+				<label kind="synchronisation" >parallel[16]!</label>
+		</transition>
+		<transition>
+			<source ref="id79"/>
+			<target ref="id75"/>
+				<label kind="synchronisation" >completed[0]!</label>
+				<label kind="assignment" >prepareExecution(0)</label>
+		</transition>
+		<transition>
+			<source ref="id80"/>
+			<target ref="id79"/>
+		</transition>
+		<transition>
+			<source ref="id76"/>
+			<target ref="id80"/>
+		</transition>
+		</template>
+		<template>
+		<name x="5" y="5"> CONTROL </name>
+		<declaration></declaration>
+		
+		<location id="id81">
+			<name>id81</name>
+		</location>
+		<location id="id82">
+			<name>id82</name>
+		</location>
+		<location id="id83">
+			<name>id83</name>
+		</location>
+		<location id="id84">
+			<name>id84</name>
+		</location>
+		<location id="id85">
+			<name>id85</name>
+		</location>
+		<location id="id86">
+			<name>id86</name>
+		</location>
+		<location id="id87">
+			<name>id87</name>
+		</location>
+		<location id="id88">
+			<name>id88</name>
+			<committed/>
+		</location>
+		
+		<init ref="id87"/>
+		
+		<transition>
+			<source ref="id81"/>
+			<target ref="id83"/>
+				<label kind="synchronisation" >execute[4]!</label>
+		</transition>
+		<transition>
+			<source ref="id83"/>
+			<target ref="id84"/>
+				<label kind="synchronisation" >execute[2]!</label>
+		</transition>
+		<transition>
+			<source ref="id84"/>
+			<target ref="id85"/>
+				<label kind="synchronisation" >execute[8]!</label>
+		</transition>
+		<transition>
+			<source ref="id85"/>
+			<target ref="id86"/>
+				<label kind="synchronisation" >execute[9]!</label>
+		</transition>
+		<transition>
+			<source ref="id86"/>
+			<target ref="id82"/>
+				<label kind="synchronisation" >execute[11]!</label>
+		</transition>
+		<transition>
+			<source ref="id81"/>
+			<target ref="id82"/>
+				<label kind="synchronisation" >execute[6]!</label>
+		</transition>
+		<transition>
+			<source ref="id88"/>
+			<target ref="id81"/>
+				<label kind="synchronisation" >completed[1]!</label>
+				<label kind="assignment" >prepareExecution(1)</label>
+		</transition>
+		<transition>
+			<source ref="id87"/>
+			<target ref="id88"/>
+				<label kind="synchronisation" >execute[1]?</label>
+		</transition>
+		<transition>
+			<source ref="id87"/>
+			<target ref="id88"/>
+				<label kind="synchronisation" >parallel[1]?</label>
+		</transition>
+		<transition>
+			<source ref="id82"/>
+			<target ref="id87"/>
+		</transition>
+		</template>
+		<template>
+		<name x="5" y="5"> PRODUCT_CATALOG </name>
+		<declaration></declaration>
+		
+		<location id="id89">
+			<name>id89</name>
+		</location>
+		<location id="id90">
+			<name>id90</name>
+		</location>
+		<location id="id91">
+			<name>id91</name>
+		</location>
+		<location id="id92">
+			<name>id92</name>
+			<committed/>
+		</location>
+		
+		<init ref="id91"/>
+		
+		<transition>
+			<source ref="id89"/>
+			<target ref="id90"/>
+				<label kind="synchronisation" >parallel[3]!</label>
+		</transition>
+		<transition>
+			<source ref="id92"/>
+			<target ref="id89"/>
+				<label kind="synchronisation" >completed[2]!</label>
+				<label kind="assignment" >prepareExecution(2)</label>
+		</transition>
+		<transition>
+			<source ref="id91"/>
+			<target ref="id92"/>
+				<label kind="synchronisation" >execute[2]?</label>
+		</transition>
+		<transition>
+			<source ref="id90"/>
+			<target ref="id91"/>
+		</transition>
+		</template>
+		<template>
+		<name x="5" y="5"> CATALOG_DATABASE </name>
+		<declaration></declaration>
+		
+		<location id="id93">
+			<name>id93</name>
+		</location>
+		<location id="id94">
+			<name>id94</name>
+			<committed/>
+		</location>
+		
+		<init ref="id93"/>
+		
+		<transition>
+			<source ref="id94"/>
+			<target ref="id93"/>
+				<label kind="synchronisation" >completed[3]!</label>
+				<label kind="assignment" >prepareExecution(3)</label>
+		</transition>
+		<transition>
+			<source ref="id93"/>
+			<target ref="id94"/>
+				<label kind="synchronisation" >execute[3]?</label>
+		</transition>
+		<transition>
+			<source ref="id93"/>
+			<target ref="id94"/>
+				<label kind="synchronisation" >parallel[3]?</label>
+		</transition>
+		</template>
+		<template>
+		<name x="5" y="5"> SIGN_ON </name>
+		<declaration></declaration>
+		
+		<location id="id95">
+			<name>id95</name>
+		</location>
+		<location id="id96">
+			<name>id96</name>
+		</location>
+		<location id="id97">
+			<name>id97</name>
+		</location>
+		<location id="id98">
+			<name>id98</name>
+			<committed/>
+		</location>
+		
+		<init ref="id97"/>
+		
+		<transition>
+			<source ref="id95"/>
+			<target ref="id96"/>
+				<label kind="synchronisation" >parallel[5]!</label>
+		</transition>
+		<transition>
+			<source ref="id98"/>
+			<target ref="id95"/>
+				<label kind="synchronisation" >completed[4]!</label>
+				<label kind="assignment" >prepareExecution(4)</label>
+		</transition>
+		<transition>
+			<source ref="id97"/>
+			<target ref="id98"/>
+				<label kind="synchronisation" >execute[4]?</label>
+		</transition>
+		<transition>
+			<source ref="id96"/>
+			<target ref="id97"/>
+		</transition>
+		</template>
+		<template>
+		<name x="5" y="5"> USER_DATABASE </name>
+		<declaration></declaration>
+		
+		<location id="id99">
+			<name>id99</name>
+		</location>
+		<location id="id100">
+			<name>id100</name>
+			<committed/>
+		</location>
+		
+		<init ref="id99"/>
+		
+		<transition>
+			<source ref="id100"/>
+			<target ref="id99"/>
+				<label kind="synchronisation" >completed[5]!</label>
+				<label kind="assignment" >prepareExecution(5)</label>
+		</transition>
+		<transition>
+			<source ref="id99"/>
+			<target ref="id100"/>
+				<label kind="synchronisation" >execute[5]?</label>
+		</transition>
+		<transition>
+			<source ref="id99"/>
+			<target ref="id100"/>
+				<label kind="synchronisation" >parallel[5]?</label>
+		</transition>
+		</template>
+		<template>
+		<name x="5" y="5"> CUSTOMER </name>
+		<declaration></declaration>
+		
+		<location id="id101">
+			<name>id101</name>
+		</location>
+		<location id="id102">
+			<name>id102</name>
+		</location>
+		<location id="id103">
+			<name>id103</name>
+		</location>
+		<location id="id104">
+			<name>id104</name>
+			<committed/>
+		</location>
+		
+		<init ref="id103"/>
+		
+		<transition>
+			<source ref="id101"/>
+			<target ref="id102"/>
+				<label kind="synchronisation" >parallel[7]!</label>
+		</transition>
+		<transition>
+			<source ref="id104"/>
+			<target ref="id101"/>
+				<label kind="synchronisation" >completed[6]!</label>
+				<label kind="assignment" >prepareExecution(6)</label>
+		</transition>
+		<transition>
+			<source ref="id103"/>
+			<target ref="id104"/>
+				<label kind="synchronisation" >execute[6]?</label>
+		</transition>
+		<transition>
+			<source ref="id102"/>
+			<target ref="id103"/>
+		</transition>
+		</template>
+		<template>
+		<name x="5" y="5"> ACCOUNT_DATABASE </name>
+		<declaration></declaration>
+		
+		<location id="id105">
+			<name>id105</name>
+		</location>
+		<location id="id106">
+			<name>id106</name>
+			<committed/>
+		</location>
+		
+		<init ref="id105"/>
+		
+		<transition>
+			<source ref="id106"/>
+			<target ref="id105"/>
+				<label kind="synchronisation" >completed[7]!</label>
+				<label kind="assignment" >prepareExecution(7)</label>
+		</transition>
+		<transition>
+			<source ref="id105"/>
+			<target ref="id106"/>
+				<label kind="synchronisation" >execute[7]?</label>
+		</transition>
+		<transition>
+			<source ref="id105"/>
+			<target ref="id106"/>
+				<label kind="synchronisation" >parallel[7]?</label>
+		</transition>
+		</template>
+		<template>
+		<name x="5" y="5"> SHOPPING_CART </name>
+		<declaration></declaration>
+		
+		<location id="id107">
+			<name>id107</name>
+		</location>
+		<location id="id108">
+			<name>id108</name>
+			<committed/>
+		</location>
+		
+		<init ref="id107"/>
+		
+		<transition>
+			<source ref="id108"/>
+			<target ref="id107"/>
+				<label kind="synchronisation" >completed[8]!</label>
+				<label kind="assignment" >prepareExecution(8)</label>
+		</transition>
+		<transition>
+			<source ref="id107"/>
+			<target ref="id108"/>
+				<label kind="synchronisation" >execute[8]?</label>
+		</transition>
+		</template>
+		<template>
+		<name x="5" y="5"> ORDER_MESSAGE </name>
+		<declaration></declaration>
+		
+		<location id="id109">
+			<name>id109</name>
+		</location>
+		<location id="id110">
+			<name>id110</name>
+		</location>
+		<location id="id111">
+			<name>id111</name>
+		</location>
+		<location id="id112">
+			<name>id112</name>
+			<committed/>
+		</location>
+		
+		<init ref="id111"/>
+		
+		<transition>
+			<source ref="id109"/>
+			<target ref="id110"/>
+				<label kind="synchronisation" >parallel[10]!</label>
+		</transition>
+		<transition>
+			<source ref="id112"/>
+			<target ref="id109"/>
+				<label kind="synchronisation" >completed[9]!</label>
+				<label kind="assignment" >prepareExecution(9)</label>
+		</transition>
+		<transition>
+			<source ref="id111"/>
+			<target ref="id112"/>
+				<label kind="synchronisation" >execute[9]?</label>
+		</transition>
+		<transition>
+			<source ref="id110"/>
+			<target ref="id111"/>
+		</transition>
+		</template>
+		<template>
+		<name x="5" y="5"> QUEUE </name>
+		<declaration></declaration>
+		
+		<location id="id113">
+			<name>id113</name>
+		</location>
+		<location id="id114">
+			<name>id114</name>
+			<committed/>
+		</location>
+		
+		<init ref="id113"/>
+		
+		<transition>
+			<source ref="id114"/>
+			<target ref="id113"/>
+				<label kind="synchronisation" >completed[10]!</label>
+				<label kind="assignment" >prepareExecution(10)</label>
+		</transition>
+		<transition>
+			<source ref="id113"/>
+			<target ref="id114"/>
+				<label kind="synchronisation" >execute[10]?</label>
+		</transition>
+		<transition>
+			<source ref="id113"/>
+			<target ref="id114"/>
+				<label kind="synchronisation" >parallel[10]?</label>
+		</transition>
+		</template>
+		<template>
+		<name x="5" y="5"> UPI </name>
+		<declaration></declaration>
+		
+		<location id="id115">
+			<name>id115</name>
+		</location>
+		<location id="id116">
+			<name>id116</name>
+		</location>
+		<location id="id117">
+			<name>id117</name>
+		</location>
+		<location id="id118">
+			<name>id118</name>
+			<committed/>
+		</location>
+		
+		<init ref="id117"/>
+		
+		<transition>
+			<source ref="id115"/>
+			<target ref="id116"/>
+				<label kind="synchronisation" >execute[12]!</label>
+		</transition>
+		<transition>
+			<source ref="id115"/>
+			<target ref="id116"/>
+				<label kind="synchronisation" >execute[13]!</label>
+		</transition>
+		<transition>
+			<source ref="id118"/>
+			<target ref="id115"/>
+				<label kind="synchronisation" >completed[11]!</label>
+				<label kind="assignment" >prepareExecution(11)</label>
+		</transition>
+		<transition>
+			<source ref="id117"/>
+			<target ref="id118"/>
+				<label kind="synchronisation" >execute[11]?</label>
+		</transition>
+		<transition>
+			<source ref="id116"/>
+			<target ref="id117"/>
+		</transition>
+		</template>
+		<template>
+		<name x="5" y="5"> UPIL </name>
+		<declaration></declaration>
+		
+		<location id="id119">
+			<name>id119</name>
+		</location>
+		<location id="id120">
+			<name>id120</name>
+		</location>
+		<location id="id121">
+			<name>id121</name>
+		</location>
+		<location id="id122">
+			<name>id122</name>
+		</location>
+		<location id="id123">
+			<name>id123</name>
+			<committed/>
+		</location>
+		
+		<init ref="id122"/>
+		
+		<transition>
+			<source ref="id119"/>
+			<target ref="id121"/>
+				<label kind="synchronisation" >parallel[15]!</label>
+		</transition>
+		<transition>
+			<source ref="id121"/>
+			<target ref="id120"/>
+				<label kind="synchronisation" >parallel[14]!</label>
+		</transition>
+		<transition>
+			<source ref="id123"/>
+			<target ref="id119"/>
+				<label kind="synchronisation" >completed[12]!</label>
+				<label kind="assignment" >prepareExecution(12)</label>
+		</transition>
+		<transition>
+			<source ref="id122"/>
+			<target ref="id123"/>
+				<label kind="synchronisation" >execute[12]?</label>
+		</transition>
+		<transition>
+			<source ref="id120"/>
+			<target ref="id122"/>
+		</transition>
+		</template>
+		<template>
+		<name x="5" y="5"> UPIS </name>
+		<declaration></declaration>
+		
+		<location id="id124">
+			<name>id124</name>
+		</location>
+		<location id="id125">
+			<name>id125</name>
+		</location>
+		<location id="id126">
+			<name>id126</name>
+		</location>
+		<location id="id127">
+			<name>id127</name>
+		</location>
+		<location id="id128">
+			<name>id128</name>
+			<committed/>
+		</location>
+		
+		<init ref="id127"/>
+		
+		<transition>
+			<source ref="id124"/>
+			<target ref="id126"/>
+				<label kind="synchronisation" >parallel[14]!</label>
+		</transition>
+		<transition>
+			<source ref="id126"/>
+			<target ref="id125"/>
+				<label kind="synchronisation" >parallel[15]!</label>
+		</transition>
+		<transition>
+			<source ref="id128"/>
+			<target ref="id124"/>
+				<label kind="synchronisation" >completed[13]!</label>
+				<label kind="assignment" >prepareExecution(13)</label>
+		</transition>
+		<transition>
+			<source ref="id127"/>
+			<target ref="id128"/>
+				<label kind="synchronisation" >execute[13]?</label>
+		</transition>
+		<transition>
+			<source ref="id125"/>
+			<target ref="id127"/>
+		</transition>
+		</template>
+		<template>
+		<name x="5" y="5"> UPLOAD </name>
+		<declaration></declaration>
+		
+		<location id="id129">
+			<name>id129</name>
+		</location>
+		<location id="id130">
+			<name>id130</name>
+			<committed/>
+		</location>
+		
+		<init ref="id129"/>
+		
+		<transition>
+			<source ref="id130"/>
+			<target ref="id129"/>
+				<label kind="synchronisation" >completed[14]!</label>
+				<label kind="assignment" >prepareExecution(14)</label>
+		</transition>
+		<transition>
+			<source ref="id129"/>
+			<target ref="id130"/>
+				<label kind="synchronisation" >execute[14]?</label>
+		</transition>
+		<transition>
+			<source ref="id129"/>
+			<target ref="id130"/>
+				<label kind="synchronisation" >parallel[14]?</label>
+		</transition>
+		</template>
+		<template>
+		<name x="5" y="5"> PROCESS </name>
+		<declaration></declaration>
+		
+		<location id="id131">
+			<name>id131</name>
+		</location>
+		<location id="id132">
+			<name>id132</name>
+			<committed/>
+		</location>
+		
+		<init ref="id131"/>
+		
+		<transition>
+			<source ref="id132"/>
+			<target ref="id131"/>
+				<label kind="synchronisation" >completed[15]!</label>
+				<label kind="assignment" >prepareExecution(15)</label>
+		</transition>
+		<transition>
+			<source ref="id131"/>
+			<target ref="id132"/>
+				<label kind="synchronisation" >execute[15]?</label>
+		</transition>
+		<transition>
+			<source ref="id131"/>
+			<target ref="id132"/>
+				<label kind="synchronisation" >parallel[15]?</label>
+		</transition>
+		</template>
+		<template>
+		<name x="5" y="5"> RENDER </name>
+		<declaration></declaration>
+		
+		<location id="id133">
+			<name>id133</name>
+		</location>
+		<location id="id134">
+			<name>id134</name>
+		</location>
+		<location id="id135">
+			<name>id135</name>
+		</location>
+		<location id="id136">
+			<name>id136</name>
+			<committed/>
+		</location>
+		
+		<init ref="id135"/>
+		
+		<transition>
+			<source ref="id133"/>
+			<target ref="id134"/>
+				<label kind="synchronisation" >execute[17]!</label>
+		</transition>
+		<transition>
+			<source ref="id133"/>
+			<target ref="id134"/>
+				<label kind="synchronisation" >execute[18]!</label>
+		</transition>
+		<transition>
+			<source ref="id136"/>
+			<target ref="id133"/>
+				<label kind="synchronisation" >completed[16]!</label>
+				<label kind="assignment" >prepareExecution(16)</label>
+		</transition>
+		<transition>
+			<source ref="id135"/>
+			<target ref="id136"/>
+				<label kind="synchronisation" >execute[16]?</label>
+		</transition>
+		<transition>
+			<source ref="id135"/>
+			<target ref="id136"/>
+				<label kind="synchronisation" >parallel[16]?</label>
+		</transition>
+		<transition>
+			<source ref="id134"/>
+			<target ref="id135"/>
+		</transition>
+		</template>
+		<template>
+		<name x="5" y="5"> RENL </name>
+		<declaration></declaration>
+		
+		<location id="id137">
+			<name>id137</name>
+		</location>
+		<location id="id138">
+			<name>id138</name>
+		</location>
+		<location id="id139">
+			<name>id139</name>
+		</location>
+		<location id="id140">
+			<name>id140</name>
+			<committed/>
+		</location>
+		
+		<init ref="id139"/>
+		
+		<transition>
+			<source ref="id137"/>
+			<target ref="id138"/>
+				<label kind="synchronisation" >parallel[15]!</label>
+		</transition>
+		<transition>
+			<source ref="id140"/>
+			<target ref="id137"/>
+				<label kind="synchronisation" >completed[17]!</label>
+				<label kind="assignment" >prepareExecution(17)</label>
+		</transition>
+		<transition>
+			<source ref="id139"/>
+			<target ref="id140"/>
+				<label kind="synchronisation" >execute[17]?</label>
+		</transition>
+		<transition>
+			<source ref="id138"/>
+			<target ref="id139"/>
+		</transition>
+		</template>
+		<template>
+		<name x="5" y="5"> RENS </name>
+		<declaration></declaration>
+		
+		<location id="id141">
+			<name>id141</name>
+		</location>
+		<location id="id142">
+			<name>id142</name>
+		</location>
+		<location id="id143">
+			<name>id143</name>
+		</location>
+		<location id="id144">
+			<name>id144</name>
+			<committed/>
+		</location>
+		
+		<init ref="id143"/>
+		
+		<transition>
+			<source ref="id141"/>
+			<target ref="id142"/>
+				<label kind="synchronisation" >parallel[15]!</label>
+		</transition>
+		<transition>
+			<source ref="id144"/>
+			<target ref="id141"/>
+				<label kind="synchronisation" >completed[18]!</label>
+				<label kind="assignment" >prepareExecution(18)</label>
+		</transition>
+		<transition>
+			<source ref="id143"/>
+			<target ref="id144"/>
+				<label kind="synchronisation" >execute[18]?</label>
+		</transition>
+		<transition>
+			<source ref="id142"/>
+			<target ref="id143"/>
+		</transition>
+		</template>
+		
+		<template>
+		<name>CloudExecutor</name>
+		<declaration>
+		void executeFragment(int fragmentId) {
+			// Calculate energy consumption based on fragment characteristics
+			int computationEnergy = Info[fragmentId].instructions * cloudEnergyPerInstruction;
+			int memoryEnergy = Info[fragmentId].memory * cloudEnergyPerMemoryUnit;
+			int communicationEnergy = Info[fragmentId].communicationData * cloudEnergyPerDataUnit;
+			
+			// Update total energy consumption
+			totalEnergyConsumed += computationEnergy + memoryEnergy + communicationEnergy;
+			
+			// Update execution time
+			executionTime += ((Info[fragmentId].instructions * 10) / cloudInstructions);
+			if(executionTime == 0) executionTime = 1; // Minimum execution time
+			
+			// Mark fragment as completed
+			fragmentsCompleted[fragmentId] = true;
+		}
+		</declaration>
+		
+		
+		<location id="id145">
+			<name>id145</name>
+		</location>
+		<location id="id146">
+			<name>id146</name>
+			<committed/>
+		</location>
+		
+		<init ref="id145"/>
+		
+		<transition>
+			<source ref="id145"/>
+			<target ref="id146"/>
+				<label kind="select" >f : id_t</label>
+				<label kind="synchronisation" >completed[f]?</label>
+				<label kind="assignment" >currentFragment = f</label>
+		</transition>
+		<transition>
+			<source ref="id146"/>
+			<target ref="id145"/>
+				<label kind="assignment" >executeFragment(currentFragment)</label>
+		</transition>
+		</template>
+		<template>
+		<name>EnergyMonitor</name>
+		<declaration>
+		// Energy monitoring functions
+		bool allFragmentsCompleted() {
+			int i;
+			for(i = 0; i &lt; N; i++) {
+				if(!fragmentsCompleted[i]) return false;
+			}
+			return true;
+		}
+		
+		int calculateTotalEnergy() {
+			return totalEnergyConsumed;
+		}
+		
+		int calculateAverageEnergyPerFragment() {
+			if(N > 0) return totalEnergyConsumed / N;
+			return 0;
+		}
+		</declaration>
+		
+		
+		<location id="id147">
+			<name>id147</name>
+		</location>
+		<location id="id148">
+			<name>id148</name>
+		</location>
+		
+		<init ref="id147"/>
+		
+		<transition>
+			<source ref="id147"/>
+			<target ref="id148"/>
+				<label kind="guard" >allFragmentsCompleted()</label>
+				<label kind="assignment" >finalEnergyConsumption = calculateTotalEnergy()</label>
+		</transition>
+		</template>
+		
+		<system>system USER_INTERFACE,CONTROL,PRODUCT_CATALOG,CATALOG_DATABASE,SIGN_ON,USER_DATABASE,CUSTOMER,ACCOUNT_DATABASE,SHOPPING_CART,ORDER_MESSAGE,QUEUE,UPI,UPIL,UPIS,UPLOAD,PROCESS,RENDER,RENL,RENS,CloudExecutor, EnergyMonitor;</system>
+		</nta>

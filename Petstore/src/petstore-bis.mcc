@@ -1,0 +1,72 @@
+/**
+ * Petstore Monolith Architecture
+ * 
+ */
+ 
+ Application Petstore {
+    // Core UI and Control Components
+    Fragment USER_INTERFACE[15, 2, 1] init;
+    Fragment CONTROL[80, 25, 15];
+    
+    // Product Management Flow
+    Fragment PRODUCT_CATALOG[50, 20, 10];
+    Fragment CATALOG_DATABASE[90, 30, 5];
+    
+    // User Authentication Flow
+    Fragment SIGN_ON[10, 5, 1];
+    Fragment USER_DATABASE[60, 20, 5];
+    
+    // Customer Management Flow
+    Fragment CUSTOMER[20, 5, 3];
+    Fragment ACCOUNT_DATABASE[80, 30, 5];
+    
+    // Shopping and Ordering Flow
+    Fragment SHOPPING_CART[35, 8, 3];
+    Fragment ORDER_MESSAGE[40, 10, 5]; 
+    Fragment QUEUE[50, 15, 8];
+    
+    // Payment Processing Flow
+    Fragment UPI[10, 1, 0];
+    Fragment UPIL[7, 3, 0];
+    Fragment UPIS[5, 3, 0]; 
+    Fragment UPLOAD[5, 3, 0]; 
+    Fragment PROCESS[70, 25, 8];
+    
+    // Rendering System
+    Fragment RENDER[60, 20, 8];
+    Fragment RENL[7, 3, 0];
+    Fragment RENS[5, 3, 0]; 
+    
+    Structure Connections [
+        // Entry point - UI and business logic in parallel
+        USER_INTERFACE --|  CONTROL, RENDER;
+        
+        // Complete e-commerce workflow - sequential steps
+        CONTROL --:: SIGN_ON, PRODUCT_CATALOG, SHOPPING_CART, ORDER_MESSAGE, UPI;
+        
+        // Database access - parallel to avoid blocking
+        SIGN_ON --|  USER_DATABASE;
+        PRODUCT_CATALOG --|  CATALOG_DATABASE;
+        CUSTOMER --|  ACCOUNT_DATABASE;
+        
+        // Order processing - sequential then parallel queue
+        ORDER_MESSAGE --|  QUEUE;
+        
+        // Payment processing - choice of methods, then parallel execution
+        UPI --> UPIL, UPIS;
+        UPIL --|  PROCESS, UPLOAD;
+        UPIS --|  UPLOAD, PROCESS;
+        
+        // Rendering system - choice of rendering strategy
+        RENDER --> RENL, RENS;
+        RENL --|  PROCESS;
+        RENS --|  PROCESS;
+        
+        // Customer management can be triggered by control
+        CONTROL --> CUSTOMER;
+    ];
+}; 
+
+Cloud Application_service [1000, 1, 1, 1, Petstore];
+Cloud Database_server [1000, 1, 1, 1, Petstore];
+System Network := Application_service | Database_server ;
